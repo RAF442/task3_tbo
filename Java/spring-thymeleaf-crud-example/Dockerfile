@@ -9,11 +9,15 @@ WORKDIR /app
 COPY src /app/src
 COPY pom.xml /app
 
-# Package the application
-RUN mvn clean install -DskipTests
+# Zadanie 1: uruchom testy jednostkowe PRZED zbudowaniem obrazu.
+# Faza 'verify' wykonuje faze 'test' (Surefire). Jesli jakikolwiek test
+# zakonczy sie niepowodzeniem, Maven zwraca kod != 0, a 'docker build'
+# przerywa sie bledem i obraz NIE powstaje.
+# (Poprzednio bylo: 'mvn clean install -DskipTests' - testy byly pomijane.)
+RUN mvn --batch-mode clean verify
 
 # ---- Deploy Stage ----
-FROM openjdk:11-jdk-slim
+FROM eclipse-temurin:11-jre
 
 # Copy the built JAR from the build stage
 COPY --from=build /app/target/thymeleaf-0.0.1-SNAPSHOT.jar /app.jar
